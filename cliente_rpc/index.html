@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROYECTO_SD (RPC) - MARIA FERRIS FERRE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            max-width: 1200px; 
+            margin: auto;
+        }
+
+        h1 {
+            background: #a9a9a9;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            margin: 0 0 20px 0;
+            border-bottom: 2px solid black;
+        }
+
+        h2 {
+            font-variant: small-caps;
+            border-bottom: 1px solid #ccc;
+            padding: 5px 10px;
+            margin-top: 0;
+        }
+
+        h3 {
+            margin: 10px;
+        }
+
+        .seccion {
+            display: none;
+            background: white;
+            border: 2px solid black;
+            width: 95%;
+            max-width: 1000px; 
+            min-height: 500px;
+            padding: 10px 0 50px 0;
+            position: relative;
+            margin-bottom: 20px;
+            overflow-x: auto; 
+        }
+
+        .activa {
+            display: block;
+        }
+
+        .seccion div {
+            padding: 5px 20px;
+            color: #000080;
+        }
+
+        input, select {
+            padding: 4px;
+            margin-left: 5px;
+        }
+
+        button {
+            padding: 4px 10px;
+            margin: 5px;
+            background: #e1e1e1;
+            border: 1px solid #767676;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #d1d1d1;
+        }
+
+        table {
+            width: 100%; 
+            margin: 10px auto;
+            border-collapse: collapse;
+            font-size: 0.85rem; 
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: center;
+            word-wrap: break-word; 
+        }
+
+        th {
+            background: #eeeeee;
+        }
+
+        /* Botones inferiores */
+        button[onclick="salir()"],
+        button[onclick="cancelarReserva()"] {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
+    <script src="rest.js"></script>
+    <script src="rpc.js"></script>
+    <script src="main.js"></script>
+</head>
+
+<body>
+    
+    <h1>Aplicación Sanitario</h1>
+
+    <!-- ACCESO - login -->
+    <div id="login" class="seccion activa">
+        <h2>Acceso</h2>
+        <div>Usuario: <input id="usuario"/></div>
+        <div>Contraseña: <input id="contra" type="password"/></div>
+        <button onclick="entrar()">Entrar</button>
+        <button onclick="registrarse()">Registrarse</button>
+    </div>
+
+    <!-- DATOS SANITARIO -->
+    <div id="datos-sanitario" class="seccion">
+        <h2>Datos Sanitario</h2>
+        <div>Nombre: <input id="nombreSan"/></div>
+        <div>Apellidos: <input id="apellidosSan"/></div>
+        <div>Login: <input id="usuarioSan"/></div>
+        <div>Contraseña: <input id="passwordSan" type="password"/></div>
+        <button onclick="guardar()">Guardar</button>
+        <button onclick="cancelar()">Cancelar</button>
+    </div>
+
+    <!-- INICIO -->
+    <div id="inicio" class="seccion">
+        <h2>Inicio</h2>
+        <div id="bienvenidaSan">
+            Bienvenido, <span id="nombreCompletoSanitario"></span>
+            <button onclick="editarDatos()">Editar datos</button>
+        </div>
+
+        <h3>Reservas pendientes</h3>
+        <table id="tablaReservasPendientes">
+            <!-- aquí se rellenan los recursos a través del main.js -->
+        </table>
+            
+        <h3>Reservas realizadas</h3>
+        <table id="tablaReservasRealizadas">
+            <!-- aquí se rellenan los recursos a través del main.js -->
+        </table>
+        <button onclick="nuevaReserva()">Nueva reserva</button>
+        
+        <h3>Avisos</h3>
+        <table id="tablaAvisos" border="1"></table>
+        
+        <button onclick="salir()">Salir</button>
+    </div>
+
+    <!-- NUEVA RESERVA -->
+    <div id="nueva-reserva" class="seccion">
+        <h2>Nueva Reserva</h2>
+        <div>
+            Categoría:
+            <select id="recursoCategoria" onchange="actualizarModelos()">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Modelo:
+            <select id="recursoModelo">
+                <option value="0">Todos</option>
+            </select><br></br>
+            T. est. uso:
+            <input id="tiempoUso" type="text"/><br></br>
+            <button onclick="buscar()">Buscar</button><br></br>
+
+            <table id="tablaNuevaReserva">
+                <!-- aquí se rellenan los recursos a través del main.js -->
+            </table>
+        </div>
+        
+        <button onclick="cancelarReservaCliente()">Cancelar</button>
+
+    </div> 
+
+    <!-- NUEVA RESENYA -->
+    <div id="resenya-nueva" class="seccion">
+        <h2>Reseña Nueva</h2>
+        <div>
+            Recurso:
+            <span id="recursoResenya"></span><br></br>
+            Valoración:
+            <select id="valoracionResenya">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select><br></br>
+            Texto:
+            <input id="descripcionResenya" type="text"/><br></br>
+
+            <button onclick="gaurdarNuevaResenya()">Guardar</button>
+            <button onclick="cancelarResenya()">Cancelar</button>
+        </div>
+    </div>
+</body>
+
+</html>

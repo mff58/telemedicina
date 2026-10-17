@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROYECTO_SD (REST) - MARIA FERRIS FERRE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            background: #a9a9a9;
+            width: 100%;
+            text-align: center;
+            padding: 10px 0;
+            margin: 0 0 20px 0;
+            border-bottom: 2px solid black;
+        }
+
+        h2 {
+            font-variant: small-caps;
+            border-bottom: 1px solid #ccc;
+            padding: 5px 10px;
+            margin-top: 0;
+        }
+
+        h3 {
+            margin: 10px;
+        }
+
+        .seccion {
+            display: none;
+            background: white;
+            border: 2px solid black;
+            width: 90%;
+            max-width: 600px;
+            min-height: 400px;
+            padding: 10px 0 50px 0;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .activa {
+            display: block;
+        }
+
+        .seccion div {
+            padding: 5px 20px;
+            color: #000080;
+        }
+
+        input, select {
+            padding: 4px;
+            margin-left: 5px;
+        }
+
+        button {
+            padding: 4px 10px;
+            margin: 5px;
+            background: #e1e1e1;
+            border: 1px solid #767676;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #d1d1d1;
+        }
+
+        table {
+            width: 95%;
+            margin: 10px auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        th {
+            background: #eeeeee;
+        }
+
+        /* Botones inferiores */
+        button[onclick="salir()"],
+        button[onclick="volverAlListado()"] {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aplicación gestor</h1>
+
+    <!-- ACCESO - login -->
+    <div id="login" class="seccion activa">
+        <h2>Acceso</h2>
+        <div>Usuario: <input id="usuario"/></div>
+        <div>Contraseña: <input id="contra" type="password"/></div>
+        <button onclick="entrar()">Entrar</button>
+        <button onclick="registrarse()">Registrarse</button>
+    </div>
+
+    <!-- DATOS GESTOR -->
+    <div id="datos-gestor" class="seccion">
+        <h2>Datos gestor</h2>
+        <div>Nombre: <input id="nombreGestor"/></div>
+        <div>Apellidos: <input id="apellidosGestor"/></div>
+        <div>Login: <input id="usuarioGestor"/></div>
+        <div>Contraseña: <input id="passwordGestor" type="password"/></div>
+        <button onclick="guardar()">Guardar</button>
+        <button onclick="cancelar()">Cancelar</button>
+    </div>
+
+    <!-- INICIO -->
+    <div id="inicio" class="seccion">
+        <h2>Inicio</h2>
+        <div id="bienvenidaGestor">
+            Bienvenido, <span id="nombreCompletoGestor"></span>
+            <button onclick="editarDatos()">Editar datos</button>
+        </div>
+
+        <h3>Búsqueda de resursos</h3>
+        <div>
+            Categoría:
+            <select id="filtroCategoria" onchange="actualizarModelos()">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Modelo:
+            <select id="filtroModelo">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Ubicación:
+            <select id="filtroUbicacion">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Estado:
+            <select id="filtroEstado">
+                <option value="-1">Todos</option>
+                <option value="0">Operativo</option>
+                <option value="1">Baja / Defectuoso</option>
+                <option value="2">Mantenimiento</option>
+            </select><br></br>
+            <button onclick="buscarRecursos()">Buscar</button>
+        </div>
+
+        <h3>Recursos</h3>
+        <table id="tablaRecursos">
+            <!-- aquí se rellenan los recursos a través del main.js -->
+        </table>
+        <button onclick="anyadirRecurso()">Añadir Recurso</button>
+        
+        <h3>Ranking de Reservas por Área Médica</h3>
+        <button onclick="enviarDatosMinisterio()">Subir Reservas al Ministerio</button>
+        <br><br>
+        <table id="tablaRanking">
+            <thead>
+                <tr>
+                    <th>Área Médica</th>
+                    <th>Reservas Totales</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTablaRanking">
+                <!-- Se rellenará desde main.js -->
+            </tbody>
+        </table>
+
+        <h3>Avisos</h3>
+        <table id="tablaAvisos" border="1"></table>
+        <button onclick="salir()">Salir</button>
+    </div>
+
+    <!-- RECURSO -->
+    <div id="recurso" class="seccion">
+        <h2>Recurso</h2>
+        <h3>Datos resursos</h3>
+        <div>
+            Categoría:
+            <select id="recursoCategoria" onchange="actualizarModelosRecurso()">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Modelo:
+            <select id="recursoModelo">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Núm. Serie:
+            <input id="recursoNumSerie" type="text"/><br></br>
+            Ubicación:
+            <select id="recursoUbicacion">
+                <option value="0">Todos</option>
+            </select><br></br>
+            Estado:
+            <select id="recursoEstado">
+                <option value="-1">Todos</option>
+                <option value="0">Operativo</option>
+                <option value="1">Baja / Defectuoso</option>
+                <option value="2">Mantenimiento</option>
+            </select><br></br>
+            <button onclick="guardarRecurso()">Guardar</button>
+        </div>
+        <h3>Resevas</h3>
+        <table id="tablaReservas">
+            <!-- aquí se rellenan las reservas a través del main.js -->
+        </table>
+        <h3>Reseñas</h3>
+        <table id="tablaResenyas">
+            <!-- aquí se rellenan las resenyas a través del main.js -->
+        </table>
+        <button onclick="volverAlListado()">Volver al listado</button>
+
+    </div>
+
+    <script src="rest.js"></script>
+    <script src="main.js"></script>
+    
+   
+</body>
+
+</html>
