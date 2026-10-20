@@ -653,86 +653,115 @@ function pintarAvisos(){
 
 // PRÁCTICA - 3: PARTE 1
 function enviarDatosMinisterio(){
-    rest.get("/api/recursos?token=" + tokenActual, function(estado, recursos){
-        if(estado === 200 && recursos){
-            
-            var todasLasReservas = [];
-            var recursosProcesados = 0;
-
-            if(recursos.length === 0){
-                alert("No hay recursos en la base de datos");
+    // 1. Obtenemos primero los modelos y las categorías para saber la categoría de cada recurso
+    rest.get("/api/modelos?token=" + tokenActual, function(eMod, modelos){
+        rest.get("/api/categorias?token=" + tokenActual, function(eCat, categorias){
+            if(eMod !== 200 || eCat !== 200){
+                alert("Error al cargar datos auxiliares de modelos y categorías.");
                 return;
             }
 
-            for(var i = 0; i < recursos.length; i++){
-                (function(recursoActual){
-                    rest.get("/api/recursos/" + recursoActual.id + "/reservas?token=" + tokenActual, function(estRes, reservasRecurso){
-                        recursosProcesados++;
+            // Mapas para buscar rápidamente el nombre de la categoría por ID de modelo
+            var mapaModelos = {};
+            for(var m = 0; m < modelos.length; m++){
+                mapaModelos[modelos[m].id] = modelos[m].categoria; // Guarda id_categoria
+            }
 
-                        if(estRes === 200 && reservasRecurso){
-                            for(var r = 0; r < reservasRecurso.length; r++){
-                                todasLasReservas.push(reservasRecurso[r]);
-                            }
-                        }
+            var mapaCategorias = {};
+            for(var c = 0; c < categorias.length; c++){
+                mapaCategorias[categorias[c].id] = categorias[c].nombre; // Guarda nombre_categoria
+            }
 
-                        if(recursosProcesados === recursos.length){
-                            
-                            if(todasLasReservas.length === 0){
-                                alert("No hay reservas asociadas a los recursos");
-                                return;
-                            }
+            // 2. Obtenemos los recursos
+            rest.get("/api/recursos?token=" + tokenActual, function(estado, recursos){
+                if(estado === 200 && recursos){
+                    
+                    var todasLasReservas = [];
+                    var recursosProcesados = 0;
 
-                            var arregloDatos = [];
-                            var reservasProcesadas = 0;
+                    if(recursos.length === 0){
+                        alert("No hay recursos en la base de datos");
+                        return;
+                    }
 
-                            for(var j = 0; j < todasLasReservas.length; j++){
-                                (function(reservaActual){
-                                    rest.get("/api/sanitarios/" + reservaActual.sanitario + "?token=" + tokenActual, function(estSan, sanitario){
-                                        reservasProcesadas++;
+                    for(var i = 0; i < recursos.length; i++){
+                        (function(recursoActual){
+                            rest.get("/api/recursos/" + recursoActual.id + "/reservas?token=" + tokenActual, function(estRes, reservasRecurso){
+                                recursosProcesados++;
 
-                                        var datoReserva = {
-                                            nombre: (estSan === 200 && sanitario) ? sanitario.nombre : "Desconocido",
-                                            apellidos: (estSan === 200 && sanitario) ? sanitario.apellidos : "",
-                                            "categoría": (estSan === 200 && sanitario) ? (sanitario.categoria || "Sanitario") : "Sanitario",
-                                            horas_estimadas: reservaActual.horas_estimadas,
-                                            fec_pet: reservaActual.fecha_peticion,
-                                            fec_ini: reservaActual.fecha_inicio ? reservaActual.fecha_inicio : null,
-                                            fecha_fin: reservaActual.fecha_fin ? reservaActual.fecha_fin : null
-                                        };
+                                if(estRes === 200 && reservasRecurso){
+                                    for(var r = 0; r < reservasRecurso.length; r++){
+                                        // Guardamos también el ID del modelo dentro del objeto de reserva para saber su categoría luego
+                                        var resConModelo = reservasRecurso[r];
+                                        resConModelo.modeloRecurso = recursoActual.modelo;
+                                        todasLasReservas.push(resConModelo);
+                                    }
+                                }
 
-                                        arregloDatos.push(datoReserva);
+                                if(recursosProcesados === recursos.length){
+                                    
+                                    if(todasLasReservas.length === 0){
+                                        alert("No hay reservas asociadas a los recursos");
+                                        return;
+                                    }
 
-                                        if(reservasProcesadas === todasLasReservas.length){
-                                            var hoy = new Date().toISOString().split('T')[0];
+                                    var arregloDatos = [];
+                                    var reservasProcesadas = 0;
 
-                                            var cuerpoEnvio = {
-                                                id_area: 5, // Tu ID de área (Dermatología)
-                                                fecha: hoy,
-                                                datos: arregloDatos
-                                            };
+                                    for(var j = 0; j < todasLasReservas.length; j++){
+                                        (function(reservaActual){
+                                            rest.get("/api/sanitarios/" + reservaActual.sanitario + "?token=" + tokenActual, function(estSan, sanitario){
+                                                reservasProcesadas++;
 
-                                            var urlMinisterio = "https://undefined.ua.es/telemedicina/api/datos";
-                                            // La petición al Ministerio es externa, NO lleva tu token de gestor local
-                                            rest.post(urlMinisterio, cuerpoEnvio, function(estadoMin){
-                                                if(estadoMin === 200 || estadoMin === 201){
-                                                    var totalEnviadas = arregloDatos.length;
-                                                    alert("Se han subido " + totalEnviadas + " reservas del Área de Dermatología al Ministerio.");
-                                                    cargarRankingMinisterio();
-                                                } else {
-                                                    alert("Error al subir los datos al Ministerio. Código: " + estadoMin);
+                                                // Buscamos el nombre de la categoría del recurso
+                                                var idCategoria = mapaModelos[reservaActual.modeloRecurso];
+                                                var nombreCategoria = mapaCategorias[idCategoria] || "Sin categoría";
+
+                                                var datoReserva = {
+                                                    nombre: (estSan === 200 && sanitario) ? sanitario.nombre : "Desconocido",
+                                                    apellidos: (estSan === 200 && sanitario) ? sanitario.apellidos : "",
+                                                    "categoría": nombreCategoria,
+                                                    horas_estimadas: reservaActual.horas_estimadas,
+                                                    fec_pet: reservaActual.fecha_peticion,
+                                                    fec_ini: reservaActual.fecha_inicio ? reservaActual.fecha_inicio : null,
+                                                    fecha_fin: reservaActual.fecha_fin ? reservaActual.fecha_fin : null
+                                                };
+
+                                                arregloDatos.push(datoReserva);
+
+                                                if(reservasProcesadas === todasLasReservas.length){
+                                                    var hoy = new Date().toISOString().split('T')[0];
+
+                                                    var cuerpoEnvio = {
+                                                        id_area: 5, // Tu ID de área (Dermatología)
+                                                        fecha: hoy,
+                                                        datos: arregloDatos
+                                                    };
+
+                                                    var urlMinisterio = "https://undefined.ua.es/telemedicina/api/datos";
+                                                    
+                                                    rest.post(urlMinisterio, cuerpoEnvio, function(estadoMin){
+                                                        if(estadoMin === 200 || estadoMin === 201){
+                                                            var totalEnviadas = arregloDatos.length;
+                                                            alert("Se han subido " + totalEnviadas + " reservas del Área de Dermatología al Ministerio.");
+                                                            cargarRankingMinisterio();
+                                                        } else {
+                                                            alert("Error al subir los datos al Ministerio. Código: " + estadoMin);
+                                                        }
+                                                    });
                                                 }
                                             });
-                                        }
-                                    });
-                                })(todasLasReservas[j]);
-                            }
-                        }
-                    });
-                })(recursos[i]);
-            }
-        } else {
-            alert("Error al consultar recursos.");
-        }
+                                        })(todasLasReservas[j]);
+                                    }
+                                }
+                            });
+                        })(recursos[i]);
+                    }
+                } else {
+                    alert("Error al consultar recursos.");
+                }
+            });
+        });
     });
 }
 
