@@ -693,7 +693,7 @@ function enviarDatosMinisterio(){
                                         var datoReserva = {
                                             nombre: (estSan === 200 && sanitario) ? sanitario.nombre : "Desconocido",
                                             apellidos: (estSan === 200 && sanitario) ? sanitario.apellidos : "",
-                                            categoria: (estSan === 200 && sanitario) ? (sanitario.categoria || "Sanitario") : "Sanitario",
+                                            "categoría": (estSan === 200 && sanitario) ? (sanitario.categoria || "Sanitario") : "Sanitario",
                                             horas_estimadas: reservaActual.horas_estimadas,
                                             fec_pet: reservaActual.fecha_peticion,
                                             fec_ini: reservaActual.fecha_inicio ? reservaActual.fecha_inicio : null,
