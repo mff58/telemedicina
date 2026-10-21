@@ -811,8 +811,14 @@ function cargarRankingMinisterio(){
 
             for(var k = 0; k < listaRanking.length; k++){
                 var fila = document.createElement("tr");
-                fila.innerHTML = "<td>" + listaRanking[k].nombre + "</td>" +
-                                 "<td>" + listaRanking[k].totales + "</td>";
+                
+                // (k + 1) nos dará el número de posición: 1, 2, 3, 4, 5...
+                var posicion = k + 1;
+
+                fila.innerHTML = "<td>" + posicion + "</td>" +
+                                "<td>" + listaRanking[k].nombre + "</td>" +
+                                "<td>" + listaRanking[k].totales + "</td>";
+                                
                 tbody.appendChild(fila);
             }
         }
